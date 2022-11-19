@@ -13,7 +13,6 @@ App.listen(port, () => {
 
 // Database connection
 let localMongoURI: string = "mongodb://127.0.0.1:27017/conduit";
-const options = { useNewUrlParser: true, useUnifiedTopology: true };
 const URI = process.env.DB_URI || localMongoURI;
 mongoose.connect(URI).then(() => {
    console.log("Connected to database");
