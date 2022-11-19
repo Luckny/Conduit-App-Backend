@@ -22,7 +22,6 @@ class App {
    private routes(): void {
       let router: express.Router = express.Router();
 
-      this.express.use("/", router); // base router
       this.express.use("/api", userRouter.router);
    }
 }
