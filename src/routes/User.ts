@@ -27,6 +27,9 @@ export class UserRouter {
       next: NextFunction
    ): any {
       console.log(err);
+      if (err.name === "ValidationError") {
+         return res.status(409).json({ errors: { body: [err.message.split("failed: ")[1]] } });
+      }
       return res.status(err.code).json(JSON.parse(err.message));
    }
 
