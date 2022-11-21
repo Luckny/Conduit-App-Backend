@@ -1,4 +1,5 @@
 import { Document, Types, Schema, model } from "mongoose";
+import * as jwt from "jsonwebtoken";
 const uniqueValidator = require("mongoose-unique-validator");
 import bcrypt = require("bcrypt");
 
@@ -64,13 +65,18 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.clean = function () {
    return {
       user: {
-         email: this.email,
-         // token: utils.genToken(this),
          username: this.username,
+         email: this.email,
          bio: this.bio,
          image: this.image,
+         token: generateJwt(this),
       },
    };
 };
 
 export const User = model<iUser>("User", userSchema);
+
+function generateJwt(user: iUser): string {
+   const payload = { id: user._id, iat: Date.now() };
+   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
+}

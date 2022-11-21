@@ -1,5 +1,6 @@
 import App from "./App";
 import mongoose from "mongoose";
+require("dotenv").config();
 
 const port = sanitizePort(process.env.PORT || 3200);
 
