@@ -7,7 +7,7 @@
       "test": "jest --color --coverage --setupFiles dotenv/config",
       "start": "npm run compile && node dist/index.js",
       "compile": "npm run compile:ts",
-      "compile:ts": "tsc --outDir ./dist --module commonjs --downlevelIteration ./src/index.ts"
+      "compile:ts": "tsc -t es5 --outDir ./dist --module commonjs --downlevelIteration ./src/index.ts"
    },
    "author": "Luckny Schnider Simélus",
    "license": "ISC",
