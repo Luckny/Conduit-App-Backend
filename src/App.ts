@@ -2,7 +2,7 @@ import express = require("express");
 import logger = require("morgan");
 
 // routes
-import { userRouter } from "./routes/User";
+import { userRouter } from "./core/routes/User";
 class App {
    public express: express.Application;
 

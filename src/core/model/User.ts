@@ -1,4 +1,4 @@
-import { Model, model, Schema, Document, Types } from "mongoose";
+import { Document, Types, Schema, model } from "mongoose";
 const uniqueValidator = require("mongoose-unique-validator");
 import bcrypt = require("bcrypt");
 
