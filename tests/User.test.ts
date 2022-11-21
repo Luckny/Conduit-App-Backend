@@ -1,7 +1,7 @@
 import "jest-extended";
 import { TestDB } from "./TestDB";
 import supertest from "supertest";
-import { User } from "../src/model/User";
+import { User } from "../src/core/model/User";
 import App from "../src/App";
 const api = supertest(App);
 
