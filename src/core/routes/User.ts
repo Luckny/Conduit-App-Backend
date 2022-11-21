@@ -15,9 +15,15 @@ export class UserRouter {
    }
 
    public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
-      const { user } = req.body;
-      const newUser = await this.controller.register(user);
-      res.status(StatusCodes.CREATED).json(newUser);
+      const { user: info } = req.body;
+      const user = await this.controller.register(info);
+      res.status(StatusCodes.CREATED).json(user);
+   }
+
+   public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+      const { user: info } = req.body;
+      const user = await this.controller.login(info);
+      res.status(StatusCodes.OK).json(user);
    }
 
    private errorHandler(
@@ -26,20 +32,27 @@ export class UserRouter {
       res: Response,
       next: NextFunction
    ): any {
-      console.log(err);
+      // console.log(err);
       if (err.name === "ValidationError") {
          return res.status(409).json({ errors: { body: [err.message.split("failed: ")[1]] } });
       }
       return res.status(err.code).json(JSON.parse(err.message));
    }
 
+   // .bind  https://stackoverflow.com/a/15605064/1168342
    public init(): void {
       /**
-       * {POST} /api/user
+       * {POST} /api/users
        * Register a user
        * @success (201) {JSON} {user: {email,token, username, bio, image}}
        */
-      this.router.post("/users", ErrorCatcher(this.register.bind(this)), this.errorHandler); // .bind  https://stackoverflow.com/a/15605064/1168342
+      this.router.post("/users", ErrorCatcher(this.register.bind(this)), this.errorHandler);
+      /**
+       * {POST} /api/users/login
+       * authentify a user
+       * @success (200) {JSON} {user: {email,token, username, bio, image}}
+       */
+      this.router.post("/users/login", ErrorCatcher(this.login.bind(this)), this.errorHandler);
    }
 }
 

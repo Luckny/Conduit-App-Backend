@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 const uniqueValidator = require("mongoose-unique-validator");
 import bcrypt = require("bcrypt");
 
-interface iUser extends Document {
+export interface iUser extends Document {
    username: string;
    email: string;
    password: string;
@@ -11,6 +11,7 @@ interface iUser extends Document {
    image: string;
    following: Types.DocumentArray<iUser>;
    clean(): Cleaned;
+   isValidPassword(password: string): boolean;
 }
 
 type Cleaned = { user: { email: string; username: string; bio: string; image: string } };
@@ -72,6 +73,10 @@ userSchema.methods.clean = function () {
          token: generateJwt(this),
       },
    };
+};
+
+userSchema.methods.isValidPassword = async function (password: string): Promise<boolean> {
+   return await bcrypt.compare(password, this.password);
 };
 
 export const User = model<iUser>("User", userSchema);

@@ -8,6 +8,7 @@ const config: Config.InitialOptions = {
    preset: "ts-jest",
    testEnvironment: "node",
    //  verbose: true,
+   setupFiles: ["dotenv/config"],
    setupFilesAfterEnv: ["jest-extended/all"],
    collectCoverageFrom: ["src/**/*.ts"],
    coveragePathIgnorePatterns: ["index.ts", "express-flash-plus.d.ts"],

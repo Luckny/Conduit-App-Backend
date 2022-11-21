@@ -7,61 +7,121 @@ const api = supertest(App);
 
 let db: TestDB;
 // Tests data
-const registerInfo = {
-   user: { username: "Luckny", email: "luckny@test.com", password: "password" },
-};
+let username: string = "testusername";
+let email: string = "test@test.com";
+let password: string = "testPassword";
+
 describe("User Test", () => {
    beforeAll(async () => {
       db = new TestDB();
       await db.connect();
    });
 
-   describe("Given one parameter is missing", () => {
-      it("should trow invalid parameter error", async () => {
-         const params = [
-            { user: { username: "Luckny", email: "luckny@test.com" } },
-            { user: { username: "Luckny", password: "password" } },
-            { user: { password: "Luckny", email: "luckny@test.com" } },
-            { user: {} },
-         ];
+   describe("register", () => {
+      describe("Given one parameter is missing", () => {
+         it("should trow invalid parameter error", async () => {
+            const params = [
+               { user: { username: "test", email: "test@test.com" } },
+               { user: { username: "test", password: "password" } },
+               { user: { password: "test", email: "luckny@test.com" } },
+               { user: {} },
+            ];
 
-         params.forEach(async (param) => {
-            const res = await api.post("/api/users").send(param);
-            expect(res.status).toBe(400);
+            params.forEach(async (param) => {
+               const res = await api.post("/api/users").send(param);
+               expect(res.status).toBe(400);
+               expect(res.type).toBe("application/json");
+               expect(res.body).toHaveProperty("errors");
+               expect(res.body.errors.body[0]).toContain("invalid parameter error");
+            });
+         });
+      });
+
+      describe("Given username, email and password", () => {
+         it("should register a new user", async () => {
+            const res = await api.post("/api/users").send({ user: { username, email, password } });
+            expect(res.status).toBe(201);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("user");
+            expect(res.body.user).toHaveProperty("token");
+         });
+      });
+
+      describe("given user already exist", () => {
+         it("should throw already exist error", async () => {
+            const res = await api.post("/api/users").send({ user: { username, email, password } });
+            expect(res.status).toBe(409);
             expect(res.type).toBe("application/json");
             expect(res.body).toHaveProperty("errors");
          });
       });
-   });
 
-   describe("Given username, email and password", () => {
-      it("should register a new user", async () => {
-         const res = await api.post("/api/users").send(registerInfo);
-         expect(res.status).toBe(201);
-         expect(res.type).toBe("application/json");
-         expect(res.body).toHaveProperty("user");
+      describe("given a duplicated username", () => {
+         it("should throw already exist error with username already exist message", async () => {
+            const res = await api
+               .post("/api/users")
+               .send({ user: { username, email: "newmail@test.com", password: "pass" } });
+
+            expect(res.status).toBe(409);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("username: already exists");
+         });
       });
    });
 
-   describe("given user already exist", () => {
-      it("should throw already exist error", async () => {
-         const res = await api.post("/api/users").send(registerInfo);
-         expect(res.status).toBe(409);
-         expect(res.type).toBe("application/json");
-         expect(res.body).toHaveProperty("errors");
+   describe("login", () => {
+      describe("given email or password is missing", () => {
+         it("should throw invalid parameter error", async () => {
+            const params = [
+               { user: { username: "Luckny" } },
+               { user: { password: "password" } },
+               { user: {} },
+            ];
+
+            params.forEach(async (param) => {
+               const res = await api.post("/api/users/login").send(param);
+               expect(res.status).toBe(400);
+               expect(res.type).toBe("application/json");
+               expect(res.body).toHaveProperty("errors");
+               expect(res.body.errors.body[0]).toContain("invalid parameter error");
+            });
+         });
       });
-   });
 
-   describe("given a duplicated username", () => {
-      it("should throw already exist error with username already exist message", async () => {
-         const res = await api
-            .post("/api/users")
-            .send({ user: { username: "Luckny", email: "newmail@test.com", password: "pass" } });
+      describe("given user does not exist", () => {
+         it("should throw not found error", async () => {
+            const res = await api
+               .post("/api/users/login")
+               .send({ user: { email: "nouser@mail.com", password } });
+            expect(res.status).toBe(404);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("user not found");
+         });
+      });
 
-         expect(res.status).toBe(409);
-         expect(res.type).toBe("application/json");
-         expect(res.body).toHaveProperty("errors");
-         expect(res.body.errors.body[0]).toContain("username: already exists");
+      describe("given invalid password", () => {
+         it("should throw unauthorized error", async () => {
+            const res = await api
+               .post("/api/users/login")
+               .send({ user: { email, password: "invalidPassword" } });
+
+            expect(res.status).toBe(401);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("invalid credentials");
+         });
+      });
+
+      describe("given email and password", () => {
+         it("should login the user", async () => {
+            const res = await api.post("/api/users/login").send({ user: { email, password } });
+            expect(res.status).toBe(200);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("user");
+            expect(res.body.user).toHaveProperty("token");
+         });
       });
    });
 
