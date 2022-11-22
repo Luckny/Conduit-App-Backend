@@ -6,11 +6,6 @@ export default abstract class AbstractError extends Error {
    abstract get code(): number;
 
    constructor(message: string) {
-      const formatedMessage = {
-         errors: {
-            body: [message],
-         },
-      };
-      super(JSON.stringify(formatedMessage));
+      super(message);
    }
 }
