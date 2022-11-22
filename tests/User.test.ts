@@ -11,6 +11,8 @@ let username: string = "testusername";
 let email: string = "test@test.com";
 let password: string = "testPassword";
 
+let loggedInToken: string;
+
 describe("User Test", () => {
    beforeAll(async () => {
       db = new TestDB();
@@ -57,7 +59,7 @@ describe("User Test", () => {
       });
 
       describe("given a duplicated username", () => {
-         it("should throw already exist error with username already exist message", async () => {
+         it("should throw already exist error", async () => {
             const res = await api
                .post("/api/users")
                .send({ user: { username, email: "newmail@test.com", password: "pass" } });
@@ -117,10 +119,36 @@ describe("User Test", () => {
       describe("given email and password", () => {
          it("should login the user", async () => {
             const res = await api.post("/api/users/login").send({ user: { email, password } });
+            loggedInToken = res.body.user.token;
             expect(res.status).toBe(200);
             expect(res.type).toBe("application/json");
             expect(res.body).toHaveProperty("user");
             expect(res.body.user).toHaveProperty("token");
+         });
+      });
+   });
+
+   describe("current user", () => {
+      describe("given user is not logged in", () => {
+         it("should return unauthorized error", async () => {
+            const res = await api.get("/api/user");
+            expect(res.status).toBe(401);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("No authorization token was found");
+         });
+      });
+
+      describe("given user is logged in", () => {
+         it("should return the user", async () => {
+            let headers = {
+               Authorization: `Token ${loggedInToken}`,
+               "Content-Type": "application/json",
+            };
+            const res = await api.get("/api/user").set(headers);
+            expect(res.status).toBe(200);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("user");
          });
       });
    });
