@@ -1,5 +1,4 @@
 import { Document, Types, Schema, model } from "mongoose";
-import * as jwt from "jsonwebtoken";
 const uniqueValidator = require("mongoose-unique-validator");
 import bcrypt = require("bcrypt");
 
@@ -10,11 +9,13 @@ export interface iUser extends Document {
    bio: string;
    image: string;
    following: Types.DocumentArray<iUser>;
-   clean(): Cleaned;
+   asDTO(token: string | null): User;
    isValidPassword(password: string): boolean;
 }
 
-type Cleaned = { user: { email: string; username: string; bio: string; image: string } };
+export type User = {
+   user: { email: string; username: string; bio: string; image: string; token: string };
+};
 export const userSchema: Schema = new Schema<iUser>({
    username: {
       type: String,
@@ -63,14 +64,14 @@ userSchema.pre("save", async function (next) {
 });
 
 // returns clean user info as per API specifications
-userSchema.methods.clean = function () {
+userSchema.methods.asDTO = function (token: string | null): User {
    return {
       user: {
          username: this.username,
          email: this.email,
          bio: this.bio,
          image: this.image,
-         token: generateJwt(this),
+         token: token ?? "",
       },
    };
 };
@@ -80,8 +81,3 @@ userSchema.methods.isValidPassword = async function (password: string): Promise<
 };
 
 export const User = model<iUser>("User", userSchema);
-
-function generateJwt(user: iUser): string {
-   const payload = { id: user._id, iat: Date.now() };
-   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
-}
