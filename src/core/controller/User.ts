@@ -3,9 +3,10 @@ import { AlreadyExistsError } from "../../errors/alreadyExistsError";
 import { InvalidParameterError } from "../../errors/invalidParameterError";
 import { NotFoundError } from "../../errors/notFoundError";
 import { UnauthorizedError } from "../../errors/unauthorizedError";
+import { Utils } from "../../lib/Utils";
 
 export class UserController {
-   public async register(userInfo: registerInfo): Promise<any> {
+   public async register(userInfo: registerInfo): Promise<User> {
       const { username, email, password } = userInfo;
       if (!username || !email || !password)
          throw new InvalidParameterError(
@@ -15,10 +16,12 @@ export class UserController {
       if (user) throw new AlreadyExistsError("user already exits");
       user = new User({ username, email, password });
       user = await user.save();
-      return user.clean();
+      //generate user token
+      const token: string = Utils.generateJWT(user._id);
+      return user.asDTO(token);
    }
 
-   public async login(userInfo: { email: string; password: string }): Promise<any> {
+   public async login(userInfo: { email: string; password: string }): Promise<User> {
       const { email, password } = userInfo;
       if (!email || !password)
          throw new InvalidParameterError(
@@ -31,7 +34,13 @@ export class UserController {
       if (!(await user.isValidPassword(password)))
          throw new UnauthorizedError("invalid credentials");
 
-      return user.clean();
+      //generate user token
+      const token: string = Utils.generateJWT(user._id);
+      return user.asDTO(token);
+   }
+
+   public async currentUser(id: string): Promise<User> {
+      return (await User.findById(id)).asDTO(null);
    }
 }
 
