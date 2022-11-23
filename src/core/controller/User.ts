@@ -6,7 +6,7 @@ import { UnauthorizedError } from "../../errors/unauthorizedError";
 import { Utils } from "../../lib/Utils";
 
 export class UserController {
-   public async register(userInfo: registerInfo): Promise<User> {
+   public async register(userInfo: RegisterInfo): Promise<User> {
       const { username, email, password } = userInfo;
       if (!username || !email || !password)
          throw new InvalidParameterError(
@@ -42,6 +42,32 @@ export class UserController {
    public async currentUser(id: string): Promise<User> {
       return (await User.findById(id)).asDTO(null);
    }
+
+   public async updateUser(userId: string, updateInfo: UpdateInfo): Promise<User> {
+      this.validateUpdateFields(updateInfo);
+      const user = await User.findByIdAndUpdate(userId, updateInfo, { new: true });
+      return user.asDTO(null);
+   }
+
+   private validateUpdateFields(info: UpdateInfo): void {
+      if (!Object.keys(info).length) throw new InvalidParameterError("invalid update parameter");
+      const { username, email, password, bio, image } = info;
+      // if username is provided but not valid
+      if (!username && username !== undefined)
+         throw new InvalidParameterError("invalid update parameter: username");
+      // if email is provided but not valid
+      if (!email && email !== undefined)
+         throw new InvalidParameterError("invalid update parameter: email");
+
+      if (!password && password !== undefined)
+         throw new InvalidParameterError("invalid update parameter: password");
+
+      const validKeys = ["username", "email", "password", "bio", "image"];
+      Object.keys(info).forEach((key) => {
+         if (!validKeys.includes(key)) throw new InvalidParameterError(`unexpected field: ${key}`);
+      });
+   }
 }
 
-type registerInfo = { username: string; email: string; password: string };
+type RegisterInfo = { username: string; email: string; password: string };
+type UpdateInfo = { username: string; email: string; password: string; bio: string; image: string };

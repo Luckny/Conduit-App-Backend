@@ -16,23 +16,32 @@ export class UserRouter {
       this.init();
    }
 
-   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+   private async register(req: Request, res: Response, next: NextFunction): Promise<void> {
       const { user: info } = req.body;
       const user = await this.controller.register(info);
       res.status(StatusCodes.CREATED).json(user);
    }
 
-   public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+   private async login(req: Request, res: Response, next: NextFunction): Promise<void> {
       const { user: info } = req.body;
       const user = await this.controller.login(info);
       res.status(StatusCodes.OK).json(user);
    }
 
-   public async currentUser(req: customRequest, res: Response, next: NextFunction): Promise<void> {
+   private async currentUser(req: customRequest, res: Response, next: NextFunction): Promise<void> {
       const {
          payload: { id },
       } = req;
       const user = await this.controller.currentUser(id);
+      res.status(StatusCodes.OK).json(user);
+   }
+
+   private async updateUser(req: customRequest, res: Response, next: NextFunction): Promise<void> {
+      const {
+         payload: { id },
+      } = req;
+      const { user: info } = req.body;
+      const user = await this.controller.updateUser(id, info);
       res.status(StatusCodes.OK).json(user);
    }
 
@@ -42,13 +51,18 @@ export class UserRouter {
       res: Response,
       next: NextFunction
    ): any {
-      console.log(err);
-      if (err.code === "credentials_required") {
+      // console.log(err);
+      if (err.code === "credentials_required")
          return res.status(err.status).json(Utils.renderError(err.inner.message));
-      }
-      if (err.name === "ValidationError") {
+
+      if (err.name === "ValidationError")
          return res.status(409).json(Utils.renderError(err.message.split("failed: ")[1]));
-      }
+
+      if (!err.code)
+         return res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json(Utils.renderError("internal server error"));
+
       return res.status(err.code).json(Utils.renderError(err.message));
    }
 
@@ -67,7 +81,7 @@ export class UserRouter {
        */
       this.router.post("/users/login", ErrorCatcher(this.login.bind(this)), this.errorHandler);
       /**
-       * {POST} /api/users
+       * {GET} /api/users
        * get the current logged in user
        * @success (200) {JSON} {user: {email,token, username, bio, image}}
        */
@@ -75,6 +89,17 @@ export class UserRouter {
          "/user",
          Auth.required,
          ErrorCatcher(this.currentUser.bind(this)),
+         this.errorHandler
+      );
+      /**
+       * {PUT} /api/user
+       * update the current logged in user
+       * @success (200) {JSON} {user: {email,token, username, bio, image}}
+       */
+      this.router.put(
+         "/user",
+         Auth.required,
+         ErrorCatcher(this.updateUser.bind(this)),
          this.errorHandler
       );
    }
