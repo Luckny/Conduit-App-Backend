@@ -58,7 +58,7 @@ userSchema.plugin(uniqueValidator, { message: "already exists" });
 
 userSchema.pre("save", async function (next) {
    const user = this;
-   // if (!user.isModified("password")) return next(); // if password field is not modified, return
+   if (!user.isModified("password")) return next(); // if password field is not modified, return
    this.password = await bcrypt.hash(user.password, 10); // hash the password
    next();
 });

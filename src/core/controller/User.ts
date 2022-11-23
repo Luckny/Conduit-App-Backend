@@ -45,7 +45,11 @@ export class UserController {
 
    public async updateUser(userId: string, updateInfo: UpdateInfo): Promise<User> {
       this.validateUpdateFields(updateInfo);
-      const user = await User.findByIdAndUpdate(userId, updateInfo, { new: true });
+      const user = await User.findById(userId);
+      Object.keys(updateInfo).forEach((property: string) => {
+         user[property] = updateInfo[property];
+      });
+      await user.save();
       return user.asDTO(null);
    }
 
