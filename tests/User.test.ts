@@ -1,8 +1,9 @@
 import "jest-extended";
 import { TestDB } from "./TestDB";
 import supertest from "supertest";
-import { User } from "../src/core/model/User";
+import { iUser, User } from "../src/core/model/User";
 import App from "../src/App";
+import { Response } from "superagent";
 const api = supertest(App);
 
 let db: TestDB;
@@ -12,6 +13,7 @@ let email: string = "test@test.com";
 let password: string = "testPassword";
 
 let loggedInToken: string;
+let headers: any;
 
 describe("User Test", () => {
    beforeAll(async () => {
@@ -75,11 +77,7 @@ describe("User Test", () => {
    describe("login", () => {
       describe("given email or password is missing", () => {
          it("should throw invalid parameter error", async () => {
-            const params = [
-               { user: { username: "Luckny" } },
-               { user: { password: "password" } },
-               { user: {} },
-            ];
+            const params = [{ user: { username: "Luckny" } }, { user: { password: "password" } }];
 
             params.forEach(async (param) => {
                const res = await api.post("/api/users/login").send(param);
@@ -138,10 +136,9 @@ describe("User Test", () => {
             expect(res.body.errors.body[0]).toContain("No authorization token was found");
          });
       });
-
       describe("given user is logged in", () => {
          it("should return the user", async () => {
-            let headers = {
+            headers = {
                Authorization: `Token ${loggedInToken}`,
                "Content-Type": "application/json",
             };
@@ -149,6 +146,92 @@ describe("User Test", () => {
             expect(res.status).toBe(200);
             expect(res.type).toBe("application/json");
             expect(res.body).toHaveProperty("user");
+         });
+      });
+   });
+
+   describe("update user", () => {
+      describe("given no update field is provided", () => {
+         it("should return invalid parameter", async () => {
+            const res = await api.put("/api/user").set(headers).send({ user: {} });
+            expect(res.status).toBe(400);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("invalid update parameter");
+         });
+      });
+      describe("given invalid username field is provided", () => {
+         it("should return invalid parameter : username", async () => {
+            const params = [];
+
+            const res = await api
+               .put("/api/user")
+               .set(headers)
+               .send({ user: { username: null, email: "good@mail" } });
+            expect(res.status).toBe(400);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("invalid update parameter: username");
+         });
+      });
+
+      describe("given invalid email field is provided", () => {
+         it("should return invalid parameter : email", async () => {
+            const res = await api
+               .put("/api/user")
+               .set(headers)
+               .send({ user: { image: "", email: "" } });
+            expect(res.status).toBe(400);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("invalid update parameter: email");
+         });
+      });
+
+      describe("given password field is missing", () => {
+         it("should return invalid parameter: password", async () => {
+            const res = await api
+               .put("/api/user")
+               .set(headers)
+               .send({ user: { password: "" } });
+            expect(res.status).toBe(400);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("invalid update parameter: password");
+         });
+      });
+
+      describe("given an unexpected property in the update object", () => {
+         it("should return unexpected field: {{name}}", async () => {
+            const res = await api
+               .put("/api/user")
+               .set(headers)
+               .send({ user: { bio: "change bio", malicious: "malicious code" } });
+            expect(res.status).toBe(400);
+            expect(res.type).toBe("application/json");
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors.body[0]).toContain("unexpected field: malicious");
+         });
+      });
+
+      describe("given a valid request", () => {
+         let user: iUser | null;
+         let res: Response;
+         it("should return a 200", async () => {
+            user = await User.findOne({ username, email });
+            res = await api
+               .put("/api/user")
+               .set(headers)
+               .send({ user: { bio: "new bio", password: "newpassword" } });
+            expect(res.status).toBe(200);
+            expect(res.type).toBe("application/json");
+         });
+
+         it("should return the user with the modified field", async () => {
+            const modifiedUser = await User.findOne({ username, email });
+            expect(user?.username && res.body.user.username).toBe(modifiedUser?.username);
+            expect(user?.bio).toBe("");
+            expect(res.body.user.bio && modifiedUser?.bio).toBe("new bio");
          });
       });
    });
