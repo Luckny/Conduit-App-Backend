@@ -91,9 +91,7 @@ describe("User Test", () => {
 
       describe("given user does not exist", () => {
          it("should throw not found error", async () => {
-            const res = await api
-               .post("/api/users/login")
-               .send({ user: { email: "nouser@mail.com", password } });
+            const res = await api.post("/api/users/login").send({ user: { email: "nouser@mail.com", password } });
             expect(res.status).toBe(404);
             expect(res.type).toBe("application/json");
             expect(res.body).toHaveProperty("errors");
@@ -103,9 +101,7 @@ describe("User Test", () => {
 
       describe("given invalid password", () => {
          it("should throw unauthorized error", async () => {
-            const res = await api
-               .post("/api/users/login")
-               .send({ user: { email, password: "invalidPassword" } });
+            const res = await api.post("/api/users/login").send({ user: { email, password: "invalidPassword" } });
 
             expect(res.status).toBe(401);
             expect(res.type).toBe("application/json");
@@ -160,6 +156,7 @@ describe("User Test", () => {
             expect(res.body.errors.body[0]).toContain("invalid update parameter");
          });
       });
+
       describe("given invalid username field is provided", () => {
          it("should return invalid parameter : username", async () => {
             const params = [];
@@ -232,6 +229,17 @@ describe("User Test", () => {
             expect(user?.username && res.body.user.username).toBe(modifiedUser?.username);
             expect(user?.bio).toBe("");
             expect(res.body.user.bio && modifiedUser?.bio).toBe("new bio");
+         });
+
+         it("should not re-hash the password if it is not modified", async () => {
+            await api
+               .put("/api/user")
+               .set(headers)
+               .send({ user: { bio: "darkness" } });
+            // now login user password proving it wasnt modified
+            const response = await api.post("/api/users/login").send({ user: { email, password: "newpassword" } });
+            expect(response.status).toBe(200);
+            expect(response.body.user.email).toBe(user?.email);
          });
       });
    });

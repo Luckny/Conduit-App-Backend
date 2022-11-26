@@ -45,23 +45,18 @@ export class UserRouter {
       res.status(StatusCodes.OK).json(user);
    }
 
-   private errorHandler(
-      err: AbstractError | any,
-      req: Request,
-      res: Response,
-      next: NextFunction
-   ): any {
+   private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {
       console.log(err);
-      if (err.code === "credentials_required")
-         return res.status(err.status).json(Utils.renderError(err.inner.message));
+      if (err.code === "credentials_required") return res.status(err.status).json(Utils.renderError(err.inner.message));
 
       if (err.name === "ValidationError")
          return res.status(409).json(Utils.renderError(err.message.split("failed: ")[1]));
 
-      if (!err.code)
-         return res
-            .status(StatusCodes.INTERNAL_SERVER_ERROR)
-            .json(Utils.renderError("internal server error"));
+      if (!err.code) {
+         console.log(" no test for this right now");
+
+         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(Utils.renderError("internal server error"));
+      }
 
       return res.status(err.code).json(Utils.renderError(err.message));
    }
@@ -85,23 +80,13 @@ export class UserRouter {
        * get the current logged in user
        * @success (200) {JSON} {user: {email,token, username, bio, image}}
        */
-      this.router.get(
-         "/user",
-         Auth.required,
-         ErrorCatcher(this.currentUser.bind(this)),
-         this.errorHandler
-      );
+      this.router.get("/user", Auth.required, ErrorCatcher(this.currentUser.bind(this)), this.errorHandler);
       /**
        * {PUT} /api/user
        * update the current logged in user
        * @success (200) {JSON} {user: {email,token, username, bio, image}}
        */
-      this.router.put(
-         "/user",
-         Auth.required,
-         ErrorCatcher(this.updateUser.bind(this)),
-         this.errorHandler
-      );
+      this.router.put("/user", Auth.required, ErrorCatcher(this.updateUser.bind(this)), this.errorHandler);
    }
 }
 
