@@ -4,6 +4,7 @@ import logger = require("morgan");
 
 // routes
 import { userRouter } from "./core/routes/User";
+import { profileRouter } from "./core/routes/Profile";
 class App {
    public express: express.Application;
 
@@ -24,6 +25,7 @@ class App {
       let router: express.Router = express.Router();
 
       this.express.use("/api", userRouter.router);
+      this.express.use("/api/profiles", profileRouter.router);
    }
 }
 export default new App().express;
