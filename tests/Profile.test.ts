@@ -18,7 +18,7 @@ let headers: any;
 
 describe("Profile Test", () => {
    beforeAll(async () => {
-      db = new TestDB();
+      db = new TestDB("test-profile");
       await db.connect();
 
       // register a two users
@@ -77,12 +77,21 @@ describe("Profile Test", () => {
             });
          });
 
-         describe("if user tries to follow itself", () => {
+         describe("if user tries to follow themself", () => {
             it("should default following to true", async () => {
                const res = await api.post(`/api/profiles/${myUsername}/follow`).set(headers);
                expect(res.status).toBe(200);
                expect(res.body.profile.username).toBe(myUsername);
                expect(res.body.profile.following).toBe(true);
+            });
+         });
+
+         describe("if no profile with the username exist", () => {
+            it("should throw a not found error", async () => {
+               const res = await api.post("/api/profiles/fakeUsername/follow").set(headers);
+               expect(res.status).toBe(404);
+               expect(res.body).toHaveProperty("errors");
+               expect(res.body.errors.body[0]).toContain("user profile not found");
             });
          });
       });

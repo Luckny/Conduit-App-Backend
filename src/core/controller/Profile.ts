@@ -21,6 +21,8 @@ export class ProfileController {
       // if currentUser tries to follow itself default to true
       if (currentUser.equals(userToFollow)) return userToFollow.asProfileDTO(true);
 
+      if (!userToFollow) throw new NotFoundError("user profile not found");
+
       // if not already following
       if (!currentUser.isFollowing(userToFollow._id)) currentUser.follow(userToFollow);
 

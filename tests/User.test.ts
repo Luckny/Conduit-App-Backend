@@ -12,12 +12,11 @@ let username: string = "testusername";
 let email: string = "test@test.com";
 let password: string = "testPassword";
 
-let loggedInToken: string;
 let headers: any;
 
 describe("User Test", () => {
    beforeAll(async () => {
-      db = new TestDB();
+      db = new TestDB("test-user");
       await db.connect();
    });
 
@@ -44,6 +43,10 @@ describe("User Test", () => {
       describe("Given username, email and password", () => {
          it("should register a new user", async () => {
             const res = await api.post("/api/users").send({ user: { username, email, password } });
+            headers = {
+               Authorization: `Token ${res.body.user.token}`,
+               "Content-Type": "application/json",
+            };
             expect(res.status).toBe(201);
             expect(res.type).toBe("application/json");
             expect(res.body).toHaveProperty("user");
@@ -113,7 +116,6 @@ describe("User Test", () => {
       describe("given email and password", () => {
          it("should login the user", async () => {
             const res = await api.post("/api/users/login").send({ user: { email, password } });
-            loggedInToken = res.body.user.token;
             expect(res.status).toBe(200);
             expect(res.type).toBe("application/json");
             expect(res.body).toHaveProperty("user");
@@ -134,10 +136,6 @@ describe("User Test", () => {
       });
       describe("given user is logged in", () => {
          it("should return the user", async () => {
-            headers = {
-               Authorization: `Token ${loggedInToken}`,
-               "Content-Type": "application/json",
-            };
             const res = await api.get("/api/user").set(headers);
             expect(res.status).toBe(200);
             expect(res.type).toBe("application/json");
