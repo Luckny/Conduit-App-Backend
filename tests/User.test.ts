@@ -216,6 +216,7 @@ describe("User Test", () => {
          let res: Response;
          it("should return a 200", async () => {
             user = await User.findOne({ username, email });
+            console.log(user);
             res = await api
                .put("/api/user")
                .set(headers)

@@ -10,12 +10,17 @@ export interface iUser extends Document {
    image: string;
    following: Types.DocumentArray<iUser>;
    asDTO(token: string | null): User;
+   asProfileDTO(isFollowing: boolean): Profile;
    isValidPassword(password: string): boolean;
+   isFollowing(userId: string): boolean;
+   follow(userId: iUser): void;
 }
 
 export type User = {
    user: { email: string; username: string; bio: string; image: string; token: string };
 };
+export type Profile = { profile: { username: string; bio: string; image: string; following: boolean } };
+
 export const userSchema: Schema = new Schema<iUser>({
    username: {
       type: String,
@@ -76,6 +81,25 @@ userSchema.methods.asDTO = function (token: string | null): User {
    };
 };
 
+userSchema.methods.asProfileDTO = function (isFollowing: boolean): Profile {
+   return {
+      profile: {
+         username: this.username,
+         bio: this.bio,
+         image: this.image,
+         following: isFollowing,
+      },
+   };
+};
+
+userSchema.methods.follow = function (user: iUser): void {
+   this.following.push(user._id);
+   this.save();
+};
+
+userSchema.methods.isFollowing = function (userId: string): boolean {
+   return this.following.includes(userId);
+};
 userSchema.methods.isValidPassword = async function (password: string): Promise<boolean> {
    return await bcrypt.compare(password, this.password);
 };

@@ -52,12 +52,6 @@ export class UserRouter {
       if (err.name === "ValidationError")
          return res.status(409).json(Utils.renderError(err.message.split("failed: ")[1]));
 
-      if (!err.code) {
-         console.log(" no test for this right now");
-
-         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(Utils.renderError("internal server error"));
-      }
-
       return res.status(err.code).json(Utils.renderError(err.message));
    }
 
