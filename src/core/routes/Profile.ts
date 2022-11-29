@@ -30,6 +30,13 @@ export class ProfileRouter {
       res.status(StatusCodes.OK).json(profile);
    }
 
+   private async unfollow(req: customRequest, res: Response, next: NextFunction): Promise<void> {
+      const { id } = req.payload;
+      const { username } = req.params;
+      const profile = await this.controller.unfollow(username, id);
+      res.status(StatusCodes.OK).json(profile);
+   }
+
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {
       //   console.log(err);
       if (err.code === "credentials_required") return res.status(err.status).json(Utils.renderError(err.inner.message));
@@ -45,17 +52,17 @@ export class ProfileRouter {
        */
       this.router.get("/:username", Auth.optional, ErrorCatcher(this.getProfile.bind(this)), this.errorHandler);
       /**
-       * {POST} /api/users/login
-       * authentify a user
-       * @success (200) {JSON} {user: {email,token, username, bio, image}}
+       * {POST} /api/profile/:username/follow
+       * follow a user
+       * @success (200) {JSON} {profile: {username, bio, image, following}}
        */
       this.router.post("/:username/follow", Auth.required, ErrorCatcher(this.follow.bind(this)), this.errorHandler);
       /**
-       * {GET} /api/users
-       * get the current logged in user
-       * @success (200) {JSON} {user: {email,token, username, bio, image}}
+       * {DELETE} /api/profile/:username/follow
+       * unfollow a user
+       * @success (200) {JSON} {profile: {username, bio, image, following}}
        */
-      //   this.router.get("/user", Auth.required, ErrorCatcher(this.currentUser.bind(this)), this.errorHandler);
+      this.router.delete("/:username/follow", Auth.required, ErrorCatcher(this.unfollow.bind(this)), this.errorHandler);
    }
 }
 

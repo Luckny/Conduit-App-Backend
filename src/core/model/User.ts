@@ -13,7 +13,8 @@ export interface iUser extends Document {
    asProfileDTO(isFollowing: boolean): Profile;
    isValidPassword(password: string): boolean;
    isFollowing(userId: string): boolean;
-   follow(userId: iUser): void;
+   follow(user: iUser): void;
+   unfollow(user: iUser): void;
 }
 
 export type User = {
@@ -94,6 +95,11 @@ userSchema.methods.asProfileDTO = function (isFollowing: boolean): Profile {
 
 userSchema.methods.follow = function (user: iUser): void {
    this.following.push(user._id);
+   this.save();
+};
+
+userSchema.methods.unfollow = function (user: iUser): void {
+   this.following.remove(user._id);
    this.save();
 };
 

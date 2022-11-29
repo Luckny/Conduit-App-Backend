@@ -59,7 +59,7 @@ describe("Profile Test", () => {
       });
    });
 
-   describe("follow a profile", () => {
+   describe("Follow a profile", () => {
       describe("given a user is authenticated", () => {
          describe("if a profile with the username exist", () => {
             let profile;
@@ -105,6 +105,59 @@ describe("Profile Test", () => {
       });
    });
 
+   describe("Unfollow a profile", () => {
+      describe("given a user is authenticated", () => {
+         describe("if a profile with the username exist and the logged in user was following it", () => {
+            let profile;
+            it("should return a 200", async () => {
+               const res = await api.delete(`/api/profiles/${profileUsername}/follow`).set(headers);
+               expect(res.status).toBe(200);
+               profile = res.body.profile;
+            });
+            it("profile object should match test data with format {username, bio, image, following: false}", async () => {
+               expect(profile).toMatchObject({ username: profileUsername, bio: "", image: "", following: false });
+            });
+            it("get profile should return following: false", async () => {
+               const res = await api.get(`/api/profiles/${profileUsername}`).set(headers);
+               expect(res.body.profile.following).toBe(false);
+            });
+
+            describe("if logged in user is not following the profile", () => {
+               it("should return 401 unauthorized error", async () => {
+                  const res = await api.delete(`/api/profiles/${profileUsername}/follow`).set(headers);
+                  expect(res.status).toBe(404);
+                  expect(res.body.errors.body[0]).toContain("user not found in following list");
+               });
+            });
+         });
+
+         describe("if user tries to unfollow themself", () => {
+            it("should default following to true", async () => {
+               const res = await api.delete(`/api/profiles/${myUsername}/follow`).set(headers);
+               expect(res.status).toBe(200);
+               expect(res.body.profile.username).toBe(myUsername);
+               expect(res.body.profile.following).toBe(true);
+            });
+         });
+
+         describe("if no profile with the username exist", () => {
+            it("should throw a not found error", async () => {
+               const res = await api.delete("/api/profiles/fakeUsername/follow").set(headers);
+               expect(res.status).toBe(404);
+               expect(res.body).toHaveProperty("errors");
+               expect(res.body.errors.body[0]).toContain("user profile not found");
+            });
+         });
+      });
+
+      describe("given no user is authenticated", () => {
+         it("should return a not authorized error", async () => {
+            const res = await api.post(`/api/profiles/${profileUsername}/follow`);
+            expect(res.status).toBe(401);
+            expect(res.body.errors.body[0]).toContain("No authorization token was found");
+         });
+      });
+   });
    afterAll(async () => {
       await User.deleteMany({});
       await db.close();

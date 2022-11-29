@@ -18,7 +18,7 @@ export class ProfileController {
    public async follow(username: string, currentUserId: string): Promise<Profile> {
       const currentUser: iUser = await User.findById(currentUserId);
       const userToFollow: iUser = await User.findOne({ username: username });
-      // if currentUser tries to follow itself default to true
+      // if currentUser tries to follow themself:  default to true
       if (currentUser.equals(userToFollow)) return userToFollow.asProfileDTO(true);
 
       if (!userToFollow) throw new NotFoundError("user profile not found");
@@ -27,5 +27,23 @@ export class ProfileController {
       if (!currentUser.isFollowing(userToFollow._id)) currentUser.follow(userToFollow);
 
       return userToFollow.asProfileDTO(currentUser.isFollowing(userToFollow._id));
+   }
+
+   public async unfollow(username: string, currentUserId: string): Promise<Profile> {
+      const currentUser: iUser = await User.findById(currentUserId);
+      const userToUnfollow: iUser = await User.findOne({ username: username });
+
+      // if currentUser tries to unfollow themself : just return
+      if (currentUser.equals(userToUnfollow)) return userToUnfollow.asProfileDTO(true);
+
+      // if username do not exist: 404
+      if (!userToUnfollow) throw new NotFoundError("user profile not found");
+
+      // if current user is not following userToUnfollow: 404
+      if (!currentUser.isFollowing(userToUnfollow._id)) throw new NotFoundError("user not found in following list");
+
+      // unfollow the user
+      currentUser.unfollow(userToUnfollow);
+      return userToUnfollow.asProfileDTO(currentUser.isFollowing(userToUnfollow._id));
    }
 }
