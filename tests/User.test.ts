@@ -20,6 +20,12 @@ describe("User Test", () => {
       await db.connect();
    });
 
+   it("should throw 500 error if data is not formated like {user: {...}}", async () => {
+      const res = await api.post("/api/users").send({ username, email, password });
+      expect(res.status).toBe(500);
+      expect(res.body.errors.body[0]).toContain("internal server error");
+   });
+
    describe("register", () => {
       describe("Given one parameter is missing", () => {
          it("should trow invalid parameter error", async () => {
