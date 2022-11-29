@@ -8,7 +8,7 @@ import { Utils } from "../../lib/Utils";
 
 export class UserRouter {
    public router: Router;
-   public controller: UserController;
+   private controller: UserController;
 
    constructor() {
       this.controller = new UserController();

@@ -8,7 +8,7 @@ import { Utils } from "../../lib/Utils";
 
 export class ProfileRouter {
    public router: Router;
-   public controller: ProfileController;
+   private controller: ProfileController;
 
    constructor() {
       this.controller = new ProfileController();

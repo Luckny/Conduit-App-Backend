@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 
 export class TagRouter {
    public router: Router;
-   public controller: TagController;
+   private controller: TagController;
 
    constructor() {
       this.router = Router();
