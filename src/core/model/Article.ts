@@ -1,7 +1,9 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, Types, model, Document } from "mongoose";
 import { iTag } from "./Tag";
 import { Profile } from "./User";
-export interface iArticle {
+const uniqueValidator = require("mongoose-unique-validator");
+
+export interface iArticle extends Document {
    slug: string;
    title: string;
    description: string;
@@ -12,6 +14,17 @@ export interface iArticle {
    author: Types.Subdocument<Profile>;
    //    comments: Types.DocumentArray<Comment>;
 }
+
+export type Article = {
+   slug: string;
+   title: string;
+   description: string;
+   body: string;
+   tagList: Types.DocumentArray<iTag>;
+   favorited: boolean;
+   favoritesCount: number;
+   author: Types.Subdocument<Profile>;
+};
 const articleSchema: Schema = new Schema<iArticle>(
    {
       slug: {
@@ -29,4 +42,7 @@ const articleSchema: Schema = new Schema<iArticle>(
    },
    { timestamps: true }
 );
+
+articleSchema.plugin(uniqueValidator, { message: "already exists" });
+
 export const Article = model<iArticle>("Article", articleSchema);

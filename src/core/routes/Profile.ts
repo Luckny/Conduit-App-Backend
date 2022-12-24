@@ -38,7 +38,7 @@ export class ProfileRouter {
    }
 
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {
-      //   console.log(err);
+      console.log(err);
       if (err.code === "credentials_required") return res.status(err.status).json(Utils.renderError(err.inner.message));
       return res.status(err.code).json(Utils.renderError(err.message));
    }

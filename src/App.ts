@@ -5,6 +5,7 @@ import logger = require("morgan");
 // routes
 import { userRouter } from "./core/routes/User";
 import { profileRouter } from "./core/routes/Profile";
+import { articleRouter } from "./core/routes/Article";
 import { tagRouter } from "./core/routes/Tag";
 class App {
    public express: express.Application;
@@ -27,6 +28,7 @@ class App {
 
       this.express.use("/api", userRouter.router);
       this.express.use("/api/profiles", profileRouter.router);
+      this.express.use("/api/articles", articleRouter.router);
       this.express.use("/api/tags", tagRouter.router);
    }
 }

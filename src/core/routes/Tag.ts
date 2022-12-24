@@ -21,7 +21,7 @@ export class TagRouter {
    }
 
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {
-      // console.log(err);
+      console.log(err);
       return res.status(err.code).json(Utils.renderError(err.message));
    }
 

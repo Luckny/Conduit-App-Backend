@@ -4,6 +4,7 @@
       "module": "commonjs",
       "outDir": "dist",
       "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
       "skipLibCheck": true
    },
    "include": ["src/**/*.ts"],
