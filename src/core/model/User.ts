@@ -1,6 +1,7 @@
 import { Document, Types, Schema, model } from "mongoose";
 const uniqueValidator = require("mongoose-unique-validator");
 import bcrypt = require("bcrypt");
+import { Article } from "./Article";
 
 export interface iUser extends Document {
    username: string;
@@ -8,6 +9,7 @@ export interface iUser extends Document {
    password: string;
    bio: string;
    image: string;
+   favorites: Types.DocumentArray<Article>;
    following: Types.DocumentArray<iUser>;
    asDTO(token: string | null): User;
    asProfileDTO(isFollowing: boolean): Profile;
@@ -46,15 +48,15 @@ export const userSchema: Schema = new Schema<iUser>({
       type: String,
       default: "",
    },
-   //  favorites: [
-   //     {
-   //        type: Schema.Types.ObjectId,
-   //        ref: "Article",
-   //     },
-   //  ],
+   favorites: [
+      {
+         type: Types.ObjectId,
+         ref: "Article",
+      },
+   ],
    following: [
       {
-         type: Schema.Types.ObjectId,
+         type: Types.ObjectId,
          ref: "User",
       },
    ],
@@ -104,7 +106,7 @@ userSchema.methods.unfollow = function (user: iUser): void {
 };
 
 userSchema.methods.isFollowing = function (userId: string): boolean {
-   return this.following.includes(userId);
+   return this.following.includes(userId) || this._id === userId;
 };
 userSchema.methods.isValidPassword = async function (password: string): Promise<boolean> {
    return await bcrypt.compare(password, this.password);
