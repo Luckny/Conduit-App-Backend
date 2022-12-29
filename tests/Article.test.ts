@@ -1,8 +1,10 @@
 import "jest-extended";
 import { TestDB } from "./TestDB";
 import { Article } from "../src/core/model/Article";
+import { Tag } from "../src/core/model/Tag";
 import App from "../src/App";
 import supertest from "supertest";
+import { User } from "../src/core/model/User";
 const api = supertest(App);
 
 let db: TestDB;
@@ -60,9 +62,23 @@ describe("Article Tests", () => {
                      tagList: ["testing", "api"],
                   },
                });
-            console.log(res.body);
+            expect(res.status).toBe(200);
+            //tags should be created
+            expect(Tag.findOne({ name: "testing" })).resolves.toBeTruthy();
          });
-         it("article should have property createdAt and author added", async () => {});
+         it("tag list is not required", async () => {
+            const res = await api
+               .post("/api/articles")
+               .set(headers)
+               .send({
+                  article: {
+                     title: "i wont have a tag list",
+                     description: "i will be succesfull",
+                     body: "this is all about testing rest apis",
+                  },
+               });
+            expect(res.status).toBe(200);
+         });
       });
 
       describe("given no user is logged in", () => {
@@ -78,6 +94,8 @@ describe("Article Tests", () => {
 
    afterAll(async () => {
       await Article.deleteMany({});
+      await Tag.deleteMany({});
+      await User.deleteMany({});
       await db.close();
    });
 });
