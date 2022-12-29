@@ -30,10 +30,9 @@ export class ArticleRouter {
       if (err.name === "ValidationError")
          return res.status(409).json(Utils.renderError(err.message.split("failed: ")[1]));
 
-      if (!err.code)
-         return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(Utils.renderError("internal server error"));
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(Utils.renderError("internal server error"));
 
-      return res.status(err.code).json(Utils.renderError(err.message));
+      // return res.status(err.code).json(Utils.renderError(err.message));
    }
 
    // .bind  https://stackoverflow.com/a/15605064/1168342
