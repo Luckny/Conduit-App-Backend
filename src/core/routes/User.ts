@@ -19,13 +19,13 @@ export class UserRouter {
    private async register(req: Request, res: Response, next: NextFunction): Promise<void> {
       const { user: info } = req.body;
       const user = await this.controller.register(info);
-      res.status(StatusCodes.CREATED).json(user);
+      res.status(StatusCodes.CREATED).json({ user });
    }
 
    private async login(req: Request, res: Response, next: NextFunction): Promise<void> {
       const { user: info } = req.body;
       const user = await this.controller.login(info);
-      res.status(StatusCodes.OK).json(user);
+      res.status(StatusCodes.OK).json({ user });
    }
 
    private async currentUser(req: customRequest, res: Response, next: NextFunction): Promise<void> {
@@ -33,7 +33,7 @@ export class UserRouter {
          payload: { id },
       } = req;
       const user = await this.controller.currentUser(id);
-      res.status(StatusCodes.OK).json(user);
+      res.status(StatusCodes.OK).json({ user });
    }
 
    private async updateUser(req: customRequest, res: Response, next: NextFunction): Promise<void> {
@@ -42,7 +42,7 @@ export class UserRouter {
       } = req;
       const { user: info } = req.body;
       const user = await this.controller.updateUser(id, info);
-      res.status(StatusCodes.OK).json(user);
+      res.status(StatusCodes.OK).json({ user });
    }
 
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {

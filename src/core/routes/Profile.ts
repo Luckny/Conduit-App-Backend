@@ -20,21 +20,21 @@ export class ProfileRouter {
       const id = req.payload?.id || null;
       const { username } = req.params;
       const profile = await this.controller.getProfile(username, id);
-      res.status(StatusCodes.OK).json(profile);
+      res.status(StatusCodes.OK).json({ profile });
    }
 
    private async follow(req: customRequest, res: Response, next: NextFunction): Promise<void> {
       const { id } = req.payload;
       const { username } = req.params;
       const profile = await this.controller.follow(username, id);
-      res.status(StatusCodes.OK).json(profile);
+      res.status(StatusCodes.OK).json({ profile });
    }
 
    private async unfollow(req: customRequest, res: Response, next: NextFunction): Promise<void> {
       const { id } = req.payload;
       const { username } = req.params;
       const profile = await this.controller.unfollow(username, id);
-      res.status(StatusCodes.OK).json(profile);
+      res.status(StatusCodes.OK).json({ profile });
    }
 
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {

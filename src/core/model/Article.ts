@@ -17,16 +17,14 @@ export interface iArticle extends Document {
 }
 
 export type Article = {
-   article: {
-      slug: string;
-      title: string;
-      description: string;
-      body: string;
-      tagList: string[];
-      favorited: boolean;
-      favoritesCount: number;
-      author: any;
-   };
+   slug: string;
+   title: string;
+   description: string;
+   body: string;
+   tagList: string[];
+   favorited: boolean;
+   favoritesCount: number;
+   author: any;
 };
 const articleSchema: Schema = new Schema<iArticle>(
    {
@@ -48,16 +46,14 @@ const articleSchema: Schema = new Schema<iArticle>(
 
 articleSchema.methods.asDTO = function (listOfTags: Types.DocumentArray<iTag>, user: iUser): Article {
    return {
-      article: {
-         slug: this.slug,
-         title: this.title,
-         description: this.description,
-         body: this.body,
-         tagList: listOfTags.map((tag) => tag.name),
-         favorited: user && user.favorites.includes(this._id),
-         favoritesCount: this.favoritesCount,
-         author: user.asProfileDTO(user.isFollowing(user._id)).profile,
-      },
+      slug: this.slug,
+      title: this.title,
+      description: this.description,
+      body: this.body,
+      tagList: listOfTags.map((tag) => tag.name),
+      favorited: user && user.favorites.includes(this._id),
+      favoritesCount: this.favoritesCount,
+      author: user.asProfileDTO(user.isFollowing(user._id)),
    };
 };
 

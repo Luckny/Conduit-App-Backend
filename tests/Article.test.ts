@@ -1,6 +1,6 @@
 import "jest-extended";
 import { TestDB } from "./TestDB";
-import { Article } from "../src/core/model/Article";
+import { Article, iArticle } from "../src/core/model/Article";
 import { Tag } from "../src/core/model/Tag";
 import App from "../src/App";
 import supertest from "supertest";
@@ -91,6 +91,28 @@ describe("Article Tests", () => {
          });
       });
    });
+
+   // describe("Feed", () => {
+   //    describe("Given no user is logged in", async () => {
+   //       // get the articles
+   //       const res = await api.get("/api/articles/feed");
+   //       const articles = res.body.articles;
+   //       it("should be able to get articles", () => {
+   //          expect(res.status).toBe(200);
+   //          expect(articles).toBeTruthy();
+   //       });
+   //       it("articles should be sorted", () => {
+   //          expect(articles[0].createdAt).toBeBefore(articles[1].createdAt);
+   //       });
+   //       it("response should have property articlesCount", () => {
+   //          expect(articles.articlesCount).toBe(articles.length);
+   //       });
+   //       it("favorited should default to false", () => {
+   //          expect(articles.every((article: Article) => article.favorited === false)).toBe(true);
+   //       });
+   //       it("author following should default to false", () => {});
+   //    });
+   // });
 
    afterAll(async () => {
       await Article.deleteMany({});

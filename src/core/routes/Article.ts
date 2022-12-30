@@ -20,7 +20,7 @@ export class ArticleRouter {
       const { id } = req.payload;
       const { article: articleInfo } = req.body;
       const article = await this.controller.createOne(articleInfo, id);
-      res.status(StatusCodes.OK).json(article);
+      res.status(StatusCodes.OK).json({ article });
    }
 
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {

@@ -20,9 +20,13 @@ export interface iUser extends Document {
 }
 
 export type User = {
-   user: { email: string; username: string; bio: string; image: string; token: string };
+   email: string;
+   username: string;
+   bio: string;
+   image: string;
+   token: string;
 };
-export type Profile = { profile: { username: string; bio: string; image: string; following: boolean } };
+export type Profile = { username: string; bio: string; image: string; following: boolean };
 
 export const userSchema: Schema = new Schema<iUser>({
    username: {
@@ -74,24 +78,20 @@ userSchema.pre("save", async function (next) {
 // returns clean user info as per API specifications
 userSchema.methods.asDTO = function (token: string | null): User {
    return {
-      user: {
-         username: this.username,
-         email: this.email,
-         bio: this.bio,
-         image: this.image,
-         token: token ?? "",
-      },
+      username: this.username,
+      email: this.email,
+      bio: this.bio,
+      image: this.image,
+      token: token ?? "",
    };
 };
 
 userSchema.methods.asProfileDTO = function (isFollowing: boolean): Profile {
    return {
-      profile: {
-         username: this.username,
-         bio: this.bio,
-         image: this.image,
-         following: isFollowing,
-      },
+      username: this.username,
+      bio: this.bio,
+      image: this.image,
+      following: isFollowing,
    };
 };
 
@@ -106,7 +106,7 @@ userSchema.methods.unfollow = function (user: iUser): void {
 };
 
 userSchema.methods.isFollowing = function (userId: string): boolean {
-   return this.following.includes(userId) || this._id === userId;
+   return this.following.includes(userId) || this._id.equals(userId);
 };
 userSchema.methods.isValidPassword = async function (password: string): Promise<boolean> {
    return await bcrypt.compare(password, this.password);
