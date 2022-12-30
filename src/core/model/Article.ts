@@ -9,11 +9,11 @@ export interface iArticle extends Document {
    description: string;
    body: string;
    tagList: Types.DocumentArray<iTag>;
-   // favorited: boolean;
+   favorited: boolean;
    favoritesCount: number;
    author: Types.Subdocument<iUser>;
    //    comments: Types.DocumentArray<Comment>;
-   asDTO(listOfTags: Types.DocumentArray<iTag>, user: iUser): Article;
+   asDTO(user: iUser): Article;
 }
 
 export type Article = {
@@ -22,6 +22,8 @@ export type Article = {
    description: string;
    body: string;
    tagList: string[];
+   createdAt: Date;
+   updatedAt: Date;
    favorited: boolean;
    favoritesCount: number;
    author: any;
@@ -44,16 +46,18 @@ const articleSchema: Schema = new Schema<iArticle>(
    { timestamps: true }
 );
 
-articleSchema.methods.asDTO = function (listOfTags: Types.DocumentArray<iTag>, user: iUser): Article {
+articleSchema.methods.asDTO = function (user: iUser): Article {
    return {
       slug: this.slug,
       title: this.title,
       description: this.description,
       body: this.body,
-      tagList: listOfTags.map((tag) => tag.name),
-      favorited: user && user.favorites.includes(this._id),
+      tagList: this.tagList.map((tag: iTag) => tag.name),
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      favorited: user?.favorites.includes(this._id) || false,
       favoritesCount: this.favoritesCount,
-      author: user.asProfileDTO(user.isFollowing(user._id)),
+      author: this.author.asProfileDTO(user?.isFollowing(this.author._id) || false),
    };
 };
 

@@ -23,6 +23,12 @@ export class ArticleRouter {
       res.status(StatusCodes.OK).json({ article });
    }
 
+   private async feed(req: customRequest, res: Response, next: NextFunction): Promise<void> {
+      const userId = req.payload?.id;
+      const articles = await this.controller.feed(userId);
+      res.status(StatusCodes.OK).json({ articles: [...articles], articlesCount: articles.length });
+   }
+
    private errorHandler(err: AbstractError | any, req: Request, res: Response, next: NextFunction): any {
       console.log(err);
       if (err.code === "credentials_required") return res.status(err.status).json(Utils.renderError(err.inner.message));
@@ -31,8 +37,6 @@ export class ArticleRouter {
          return res.status(409).json(Utils.renderError(err.message.split("failed: ")[1]));
 
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(Utils.renderError("internal server error"));
-
-      // return res.status(err.code).json(Utils.renderError(err.message));
    }
 
    // .bind  https://stackoverflow.com/a/15605064/1168342
@@ -43,6 +47,13 @@ export class ArticleRouter {
        * @success (201) {JSON} {article: {slug,title,description,body,tagList, ...}}
        */
       this.router.post("/", Auth.required, ErrorCatcher(this.createOne.bind(this)), this.errorHandler);
+
+      /**
+       * {GET} /api/articles/feed
+       * get articles
+       * @success (200) {JSON} {articles: [{slug,title,description,body,tagList, ...}, {...}]}
+       */
+      this.router.get("/feed", Auth.optional, ErrorCatcher(this.feed.bind(this)), this.errorHandler);
    }
 }
 

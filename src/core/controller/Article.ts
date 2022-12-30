@@ -1,7 +1,7 @@
 import { Article, iArticle } from "../model/Article";
 import slug = require("slug");
 import { Tag } from "../model/Tag";
-import { User } from "../model/User";
+import { User, iUser } from "../model/User";
 // random string import
 export class ArticleController {
    public async createOne(articleInfo: ArticleCreateInfo, authorId: string): Promise<Article> {
@@ -18,8 +18,18 @@ export class ArticleController {
          author: authorId,
       });
 
-      article = await (await article.save()).populate("tagList");
-      return article.asDTO(article.tagList, author);
+      article = await (await (await article.save()).populate("tagList")).populate("author");
+      return article.asDTO(author);
+   }
+
+   public async feed(userId: string): Promise<Article[]> {
+      let user: iUser = await User.findById(userId);
+      const articles: iArticle[] = await Article.find({})
+         .sort({ createdAt: -1 })
+         .populate("tagList")
+         .populate("author");
+
+      return articles.map((article: iArticle) => article.asDTO(user));
    }
 
    private async transformTagListToTagId(tagList: string[]): Promise<string[]> {
