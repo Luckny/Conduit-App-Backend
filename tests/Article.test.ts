@@ -1,6 +1,6 @@
 import "jest-extended";
 import { TestDB } from "./TestDB";
-import { Article, iArticle } from "../src/core/model/Article";
+import { Article } from "../src/core/model/Article";
 import { Tag } from "../src/core/model/Tag";
 import App from "../src/App";
 import supertest from "supertest";
@@ -92,27 +92,60 @@ describe("Article Tests", () => {
       });
    });
 
-   // describe("Feed", () => {
-   //    describe("Given no user is logged in", async () => {
-   //       // get the articles
-   //       const res = await api.get("/api/articles/feed");
-   //       const articles = res.body.articles;
-   //       it("should be able to get articles", () => {
-   //          expect(res.status).toBe(200);
-   //          expect(articles).toBeTruthy();
-   //       });
-   //       it("articles should be sorted", () => {
-   //          expect(articles[0].createdAt).toBeBefore(articles[1].createdAt);
-   //       });
-   //       it("response should have property articlesCount", () => {
-   //          expect(articles.articlesCount).toBe(articles.length);
-   //       });
-   //       it("favorited should default to false", () => {
-   //          expect(articles.every((article: Article) => article.favorited === false)).toBe(true);
-   //       });
-   //       it("author following should default to false", () => {});
-   //    });
-   // });
+   describe("Feed", () => {
+      // get the articles
+      let res: any;
+      let articles: any;
+
+      it("response status should be 200", async () => {
+         res = await api.get("/api/articles/feed");
+         articles = res.body.articles;
+         expect(res.status).toBe(200);
+      });
+
+      it("response should have property articles", () => {
+         expect(articles).toBeTruthy();
+      });
+      it("articles should be sorted", () => {
+         expect(articles[0].createdAt).toBeBefore(articles[1].createdAt);
+      });
+      it("response should have property articlesCount", () => {
+         expect(articles.articlesCount).toBe(articles.length);
+      });
+
+      describe("Given no user is logged in", () => {
+         it("favorited should default to false", () => {
+            expect(articles.every((article: Article) => article.favorited === false)).toBe(true);
+         });
+         it("author following should default to false", () => {
+            expect(articles.every((article: Article) => article.author.following === false)).toBe(true);
+         });
+      });
+
+      describe("Given a user is logged in", () => {
+         let articles: any;
+
+         let author;
+         User.findOne({ username: authorUsername, email: authorEmail }).then((user) => (author = user));
+
+         // an author might favorite his own article
+         it("favorited should be accurate", async () => {
+            const res = await api.get("/api/articles/feed").set(headers);
+            articles = res.body.articles;
+            expect(
+               articles.every(async (article: Article) => {
+                  let art = await Article.findOne({ slug: article.slug });
+                  return article.favorited === author?.favorites.includes(art?._id);
+               })
+            ).toBe(true);
+         });
+
+         // in this case following will be true because the logged in user is also the author
+         it("author following should accurate", () => {
+            expect(articles.every((article: Article) => article.author.following === true)).toBe(true);
+         });
+      });
+   });
 
    afterAll(async () => {
       await Article.deleteMany({});
