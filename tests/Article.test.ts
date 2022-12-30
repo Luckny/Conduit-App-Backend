@@ -107,10 +107,10 @@ describe("Article Tests", () => {
          expect(articles).toBeTruthy();
       });
       it("articles should be sorted", () => {
-         expect(articles[0].createdAt).toBeBefore(articles[1].createdAt);
+         expect(articles[0].createdAt).toBeAfter(articles[1].createdAt);
       });
       it("response should have property articlesCount", () => {
-         expect(articles.articlesCount).toBe(articles.length);
+         expect(res.body.articlesCount).toBe(articles.length);
       });
 
       describe("Given no user is logged in", () => {
