@@ -145,6 +145,47 @@ describe("Article Tests", () => {
             expect(articles.every((article: Article) => article.author.following === true)).toBe(true);
          });
       });
+
+      describe("limit and offset", () => {
+         beforeAll(async () => {
+            await api
+               .post("/api/articles")
+               .set(headers)
+               .send({
+                  article: {
+                     title: "What is",
+                     description: "for article",
+                     body: "this is all about testing rest apis",
+                     tagList: ["testing", "api"],
+                  },
+               });
+
+            await api
+               .post("/api/articles")
+               .set(headers)
+               .send({
+                  article: {
+                     title: "This is the Way",
+                     description: "for tests with jest",
+                     body: "this is all about testing rest apis",
+                     tagList: ["conduit", "api"],
+                  },
+               });
+         });
+         it("should be able to set limit in the querry", async () => {
+            const res = await api.get("/api/articles/feed?limit=1");
+            expect(res.body.articles.length).toBe(1);
+         });
+
+         it("should be able to limit and offset", async () => {
+            let res = await api.get("/api/articles/feed");
+            const allArticles = res.body.articles;
+            res = await api.get("/api/articles/feed?limit=1&offset=1");
+            const offsetedArticles = res.body.articles;
+            // allArticles[1] should be offsetedArticles[0]
+            expect(allArticles[1]).toEqual(offsetedArticles[0]);
+         });
+      });
    });
 
    afterAll(async () => {

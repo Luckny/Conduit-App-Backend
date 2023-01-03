@@ -22,12 +22,14 @@ export class ArticleController {
       return article.asDTO(author);
    }
 
-   public async feed(userId: string): Promise<Article[]> {
+   public async feed(userId: string, limit: number, offset: number): Promise<Article[]> {
       let user: iUser = await User.findById(userId);
       const articles: iArticle[] = await Article.find({})
          .sort({ createdAt: -1 })
          .populate("tagList")
-         .populate("author");
+         .populate("author")
+         .skip(offset || 0)
+         .limit(limit || 20);
 
       return articles.map((article: iArticle) => article.asDTO(user));
    }

@@ -25,7 +25,8 @@ export class ArticleRouter {
 
    private async feed(req: customRequest, res: Response, next: NextFunction): Promise<void> {
       const userId = req.payload?.id;
-      const articles = await this.controller.feed(userId);
+      const { limit, offset } = req.query;
+      const articles = await this.controller.feed(userId, parseInt(limit as string), parseInt(offset as string));
       res.status(StatusCodes.OK).json({ articles: [...articles], articlesCount: articles.length });
    }
 
