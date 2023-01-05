@@ -23,10 +23,16 @@ export class ArticleRouter {
       res.status(StatusCodes.OK).json({ article });
    }
 
-   private async feed(req: customRequest, res: Response, next: NextFunction): Promise<void> {
+   private async allArticles(req: customRequest, res: Response, next: NextFunction): Promise<void> {
       const userId = req.payload?.id;
-      const { limit, offset } = req.query;
-      const articles = await this.controller.feed(userId, parseInt(limit as string), parseInt(offset as string));
+      const { limit, offset, tag, author, favorited } = req.query;
+      const filters = { tag, author, favorited };
+      const articles = await this.controller.allArticles(
+         userId,
+         parseInt(limit as string),
+         parseInt(offset as string),
+         filters
+      );
       res.status(StatusCodes.OK).json({ articles: [...articles], articlesCount: articles.length });
    }
 
@@ -50,11 +56,11 @@ export class ArticleRouter {
       this.router.post("/", Auth.required, ErrorCatcher(this.createOne.bind(this)), this.errorHandler);
 
       /**
-       * {GET} /api/articles/feed
-       * get articles
+       * {GET} /api/articles/
+       * get all articles
        * @success (200) {JSON} {articles: [{slug,title,description,body,tagList, ...}, {...}]}
        */
-      this.router.get("/feed", Auth.optional, ErrorCatcher(this.feed.bind(this)), this.errorHandler);
+      this.router.get("/", Auth.optional, ErrorCatcher(this.allArticles.bind(this)), this.errorHandler);
    }
 }
 

@@ -5,6 +5,7 @@ import { Tag } from "../src/core/model/Tag";
 import App from "../src/App";
 import supertest from "supertest";
 import { User } from "../src/core/model/User";
+import exp from "constants";
 const api = supertest(App);
 
 let db: TestDB;
@@ -92,13 +93,13 @@ describe("Article Tests", () => {
       });
    });
 
-   describe("Feed", () => {
+   describe("All", () => {
       // get the articles
       let res: any;
       let articles: any;
 
       it("response status should be 200", async () => {
-         res = await api.get("/api/articles/feed");
+         res = await api.get("/api/articles");
          articles = res.body.articles;
          expect(res.status).toBe(200);
       });
@@ -130,7 +131,7 @@ describe("Article Tests", () => {
 
          // an author might favorite his own article
          it("favorited should be accurate", async () => {
-            const res = await api.get("/api/articles/feed").set(headers);
+            const res = await api.get("/api/articles").set(headers);
             articles = res.body.articles;
             expect(
                articles.every(async (article: Article) => {
@@ -146,7 +147,7 @@ describe("Article Tests", () => {
          });
       });
 
-      describe("limit and offset", () => {
+      describe("Filters", () => {
          beforeAll(async () => {
             await api
                .post("/api/articles")
@@ -173,17 +174,59 @@ describe("Article Tests", () => {
                });
          });
          it("should be able to set limit in the querry", async () => {
-            const res = await api.get("/api/articles/feed?limit=1");
+            const res = await api.get("/api/articles?limit=1");
             expect(res.body.articles.length).toBe(1);
          });
 
          it("should be able to limit and offset", async () => {
-            let res = await api.get("/api/articles/feed");
+            let res = await api.get("/api/articles");
             const allArticles = res.body.articles;
-            res = await api.get("/api/articles/feed?limit=1&offset=1");
+            res = await api.get("/api/articles?limit=1&offset=1");
             const offsetedArticles = res.body.articles;
             // allArticles[1] should be offsetedArticles[0]
             expect(allArticles[1]).toEqual(offsetedArticles[0]);
+         });
+
+         it("should return articles with tag 'conduit'", async () => {
+            let res = await api.get("/api/articles?tag=conduit");
+            expect(res.body.articles.every((article) => article.tagList.includes("conduit"))).toBe(true);
+         });
+
+         it("should filter articles of anothor author", async () => {
+            await api
+               .post("/api/users")
+               .send({ user: { username: "user", email: "another@mail.com", password: "anotherpass" } });
+            // loggin in another author
+            const res = await api
+               .post("/api/users/login")
+               .send({ user: { email: "another@mail.com", password: "anotherpass" } });
+            headers = {
+               Authorization: `Token ${res.body.user.token}`,
+               "Content-Type": "application/json",
+            };
+            // creating an article with another user
+            await api
+               .post("/api/articles")
+               .set(headers)
+               .send({
+                  article: {
+                     title: "another user article",
+                     description: "filter",
+                     body: "is there another way to prove that i can filter by author?",
+                     tagList: ["filter", "api", "author"],
+                  },
+               });
+
+            // finally the test
+            const { body } = await api.get(`/api/articles?author=${authorUsername}`);
+            expect(body.articles.every((article) => article.author.username === authorUsername)).toBe(true);
+         });
+
+         it("should filter by favorited", async () => {
+            let res = await api.get(`/api/articles?favorited=${authorUsername}`);
+            expect(true).toBe(false);
+            // failing test: favorite not implemented yet
+            res = await api.get("/api/articles?favorited=true");
          });
       });
    });

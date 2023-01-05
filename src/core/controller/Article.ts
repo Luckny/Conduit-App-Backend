@@ -22,16 +22,31 @@ export class ArticleController {
       return article.asDTO(author);
    }
 
-   public async feed(userId: string, limit: number, offset: number): Promise<Article[]> {
+   public async allArticles(userId: string, limit: number, offset: number, filters: any): Promise<Article[]> {
       let user: iUser = await User.findById(userId);
-      const articles: iArticle[] = await Article.find({})
+      const documents: iArticle[] = await Article.find({})
          .sort({ createdAt: -1 })
          .populate("tagList")
          .populate("author")
          .skip(offset || 0)
          .limit(limit || 20);
 
-      return articles.map((article: iArticle) => article.asDTO(user));
+      const articles: Article[] = documents.map((article: iArticle) => article.asDTO(user));
+      return await this.applyFilters(articles, filters);
+   }
+
+   private async applyFilters(articles: Article[], filters: any): Promise<Article[]> {
+      const { tag, author, favorited: username } = filters;
+      let filtered: Set<Article> = new Set();
+      if (username) {
+         const res = await User.find({ username: username }).populate("favorites");
+         console.log("NOT IMPLEMENTED YET");
+      }
+      articles.forEach((article: Article) => {
+         if (tag && article.tagList.includes(tag)) filtered.add(article);
+         if (author && article.author.username === author) filtered.add(article);
+      });
+      return filtered.size > 0 ? Array.from(filtered) : articles;
    }
 
    private async transformTagListToTagId(tagList: string[]): Promise<string[]> {
